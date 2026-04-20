@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<title>🐎 Шагай уралдуулах тоглоом</title>
+
+<style>
+body {
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+}
+
+h1 { color: #2c3e50; }
+
+/* шагай */
+.shagai-container {
+  background: white;
+  display: inline-block;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin-top: 20px;
+}
+
+.shagai {
+  font-size: 50px;
+  margin: 10px;
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+/* button */
+button {
+  margin: 10px;
+  padding: 12px 25px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  transition: 0.2s;
+}
+
+.btn-play { background-color: #27ae60; color: white; }
+.btn-play:hover { background-color: #2ecc71; }
+.btn-reset { background-color: #e74c3c; color: white; }
+
+/* зам */
+.track-container {
+  width: 800px;
+  margin: 30px auto;
+  text-align: left;
+}
+
+.track-label { font-weight: bold; margin-bottom: 5px; }
+
+.track {
+  height: 60px;
+  border: 2px solid #34495e;
+  margin-bottom: 15px;
+  position: relative;
+  background: #fff;
+  border-radius: 30px;
+  overflow: hidden;
+}
+
+.horse {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  font-size: 35px;
+  transition: left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 2;
+}
+
+.finish {
+  position: absolute;
+  right: 0;
+  width: 30px;
+  height: 100%;
+  background: repeating-linear-gradient(45deg, #000, #000 10px, #fff 10px, #fff 20px);
+}
+
+/* score */
+.info-panel {
+  font-size: 20px;
+  margin: 20px;
+  padding: 15px;
+  background: #d1d8e0;
+  border-radius: 10px;
+}
+
+.current-turn {
+  color: #e67e22;
+  font-weight: bold;
+  font-size: 24px;
+}
+</style>
+</head>
+<body>
+
+<h1>🐎 Шагай уралдуулах</h1>
+
+<div class="info-panel">
+    <div>
+        Тоглогч 1: <span id="score1">0</span> | 
+        Тоглогч 2: <span id="score2">0</span>
+    </div>
+    <div id="status" class="current-turn">Тоглогч 1-ийн ээлж</div>
+</div>
+
+<div class="shagai-container">
+  <span id="s1" class="shagai">🐑</span>
+  <span id="s2" class="shagai">🐑</span>
+  <span id="s3" class="shagai">🐑</span>
+  <span id="s4" class="shagai">🐑</span>
+</div>
+
+<br>
+<button class="btn-play" onclick="play()">Шагай орхих</button>
+<button class="btn-reset" onclick="resetGame()">Дахин эхлэх</button>
+
+<div class="track-container">
+    <div class="track-label">Тоглогч 1</div>
+    <div class="track">
+      <div id="horse1" class="horse">🐎</div>
+      <div class="finish"></div>
+    </div>
+
+    <div class="track-label">Тоглогч 2</div>
+    <div class="track">
+      <div id="horse2" class="horse">🐎</div>
+      <div class="finish"></div>
+    </div>
+</div>
+
+<h2 id="result"></h2>
+
+<script>
+let pos1 = 0;
+let pos2 = 0;
+let score1 = 0;
+let score2 = 0;
+let currentPlayer = 1;
+
+const shagaiTypes = ["🐐","🐎","🐑","🐄"];
+const trackWidth = 740; // Бариа хүртэлх зай
+
+function play() {
+  let horseCount = 0;
+  const resultText = document.getElementById("result");
+  const statusText = document.getElementById("status");
+
+  // 1. Шагай орхих анимаци (бага зэрэг сэгсрэх)
+  for (let i = 1; i <= 4; i++) {
+    let rand = Math.floor(Math.random() * 4);
+    let type = shagaiTypes[rand];
+    let el = document.getElementById("s" + i);
+    el.innerText = type;
+    
+    // Морь буусан эсэхийг шалгах
+    if (type === "🐎") horseCount++;
+  }
+
+  // 2. Оноо тооцох (Хэрэв морь буувал урагшилна)
+  let move = horseCount * 40; 
+
+  if (currentPlayer === 1) {
+    pos1 += move;
+    if (pos1 > trackWidth) pos1 = trackWidth;
+    document.getElementById("horse1").style.left = pos1 + "px";
+    
+    if (pos1 >= trackWidth) {
+      announceWinner(1);
+    } else {
+      currentPlayer = 2;
+      statusText.innerText = "Тоглогч 2-ын ээлж";
+      resultText.innerText = horseCount > 0 ? `Морь ${horseCount} буулаа!` : "Морь буусангүй!";
+    }
+  } else {
+    pos2 += move;
+    if (pos2 > trackWidth) pos2 = trackWidth;
+    document.getElementById("horse2").style.left = pos2 + "px";
+    
+    if (pos2 >= trackWidth) {
+      announceWinner(2);
+    } else {
+      currentPlayer = 1;
+      statusText.innerText = "Тоглогч 1-ийн ээлж";
+      resultText.innerText = horseCount > 0 ? `Морь ${horseCount} буулаа!` : "Морь буусангүй!";
+    }
+  }
+}
+
+function announceWinner(p) {
+  if (p === 1) score1++; else score2++;
+  document.getElementById("score1").innerText = score1;
+  document.getElementById("score2").innerText = score2;
+  document.getElementById("result").innerText = `🏆 Тоглогч ${p} түрүүллээ!`;
+  
+  // Товчлуурыг түр идэвхгүй болгох
+  document.querySelector(".btn-play").disabled = true;
+  
+  setTimeout(() => {
+    resetRound();
+    document.querySelector(".btn-play").disabled = false;
+  }, 2000);
+}
+
+function resetRound() {
+  pos1 = 0;
+  pos2 = 0;
+  currentPlayer = 1;
+  document.getElementById("horse1").style.left = "0px";
+  document.getElementById("horse2").style.left = "0px";
+  document.getElementById("status").innerText = "Тоглогч 1-ийн ээлж";
+  document.getElementById("result").innerText = "";
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById("s" + i).innerText = "🐑";
+  }
+}
+
+function resetGame() {
+  score1 = 0;
+  score2 = 0;
+  document.getElementById("score1").innerText = "0";
+  document.getElementById("score2").innerText = "0";
+  resetRound();
+}
+</script>
+
+</body>
+</html>
